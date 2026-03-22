@@ -7,7 +7,11 @@ import { useRouter } from 'next/router'
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
 
-const PRICE = 34.95
+const BUNDLES = {
+  1: { price: 34.95, label: '1 Lighter' },
+  2: { price: 59.95, label: '2 Lighters' },
+  3: { price: 79.95, label: '3 Lighters' },
+}
 
 export default function Checkout() {
   const router = useRouter()
@@ -55,7 +59,8 @@ export default function Checkout() {
     }
   }
 
-  const total = (PRICE * qty).toFixed(2)
+  const bundle = BUNDLES[qty] || BUNDLES[1]
+  const total = bundle.price.toFixed(2)
 
   return (
     <>
@@ -114,18 +119,18 @@ export default function Checkout() {
               </div>
               <div style={{ flex: 1 }}>
                 <p style={{ fontWeight: 500, fontSize: '15px', marginBottom: '4px' }}>ArcLit Plasma Lighter</p>
-                <p style={{ fontSize: '13px', color: '#888' }}>Qty: {qty}</p>
+                <p style={{ fontSize: '13px', color: '#888' }}>{bundle.label}</p>
               </div>
               <p style={{ fontFamily: 'Syne, sans-serif', fontWeight: 700, fontSize: '16px', color: '#4fc3f7' }}>
-                ${(PRICE * qty).toFixed(2)}
+                ${bundle.price.toFixed(2)}
               </p>
             </div>
 
             {/* Breakdown */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#888' }}>
-                <span>Subtotal ({qty} item{qty > 1 ? 's' : ''})</span>
-                <span>${(PRICE * qty).toFixed(2)}</span>
+                <span>Subtotal ({bundle.label})</span>
+                <span>${bundle.price.toFixed(2)}</span>
               </div>
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '14px', color: '#888' }}>
                 <span>Shipping</span>

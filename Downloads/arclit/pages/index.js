@@ -4,11 +4,16 @@ import Navbar from '../components/Navbar'
 import Footer from '../components/Footer'
 import { useEffect, useState, useRef } from 'react'
 
-const PRICE = 34.95
 const STOCK_COUNT = 23
 
+const BUNDLES = [
+  { qty: 1, price: 34.95, original: 34.95, label: '1 Lighter', tag: null, perUnit: null },
+  { qty: 2, price: 59.95, original: 69.90, label: '2 Lighters', tag: 'Most Popular', perUnit: 29.97 },
+  { qty: 3, price: 79.95, original: 104.85, label: '3 Lighters', tag: 'Best Value', perUnit: 26.65 },
+]
+
 export default function Home() {
-  const [qty, setQty] = useState(1)
+  const [selectedBundle, setSelectedBundle] = useState(0)
   const [addedToCart, setAddedToCart] = useState(false)
   const [showStickyBar, setShowStickyBar] = useState(false)
   const [activeImage, setActiveImage] = useState(0)
@@ -53,11 +58,13 @@ export default function Home() {
     return () => observer.disconnect()
   }, [])
 
+  const bundle = BUNDLES[selectedBundle]
+
   function handleAddToCart() {
     fetch('/api/track', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event: 'add_to_cart', qty })
+      body: JSON.stringify({ event: 'add_to_cart', qty: bundle.qty })
     }).catch(() => {})
     setAddedToCart(true)
     setTimeout(() => setAddedToCart(false), 2500)
@@ -121,10 +128,10 @@ export default function Home() {
         transition: 'transform 0.35s cubic-bezier(0.4,0,0.2,1)',
       }}>
         <div>
-          <div style={{ fontSize: '12px', color: 'var(--muted)' }}>ArcLit Plasma Lighter</div>
-          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '20px', color: 'var(--arc)' }}>${PRICE} AUD</div>
+          <div style={{ fontSize: '12px', color: 'var(--muted)' }}>ArcLit — {bundle.label}</div>
+          <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '20px', color: 'var(--arc)' }}>${bundle.price} AUD</div>
         </div>
-        <Link href={`/checkout?qty=1`} style={{
+        <Link href={`/checkout?qty=${bundle.qty}`} style={{
           background: 'var(--arc)', color: '#000',
           padding: '13px 28px', borderRadius: '4px',
           fontFamily: 'var(--font-display)', fontWeight: 700,
@@ -193,7 +200,7 @@ export default function Home() {
             }}
               onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 30px rgba(79,195,247,0.3)' }}
               onMouseLeave={e => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = 'none' }}>
-              Get ArcLit — ${PRICE}
+              Get ArcLit — $34.95
             </Link>
             <Link href="/#how-it-works" style={{
               border: '1px solid var(--border)', color: 'var(--muted)',
@@ -318,21 +325,58 @@ export default function Home() {
               </span>
             </div>
 
-            {/* Price */}
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px', marginBottom: '20px' }}>
-              <span style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '38px', color: 'var(--arc)' }}>${PRICE}</span>
-              <span style={{ fontSize: '14px', color: 'var(--muted)', textDecoration: 'line-through' }}>$59.95</span>
-              <span style={{ background: 'rgba(79,195,247,0.1)', color: 'var(--arc)', fontSize: '11px', padding: '3px 8px', borderRadius: '4px', fontWeight: 600 }}>42% OFF</span>
-            </div>
-
-            {/* Qty */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '14px' }}>
-              <span style={{ fontSize: '13px', color: 'var(--muted)' }}>Qty</span>
-              <div style={{ display: 'flex', alignItems: 'center', border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden' }}>
-                <button onClick={() => setQty(q => Math.max(1, q - 1))} style={{ background: 'var(--surface)', border: 'none', color: 'var(--white)', width: '36px', height: '36px', fontSize: '18px', cursor: 'pointer' }}>−</button>
-                <span style={{ padding: '0 20px', fontSize: '15px', fontWeight: 500, background: 'var(--black)' }}>{qty}</span>
-                <button onClick={() => setQty(q => q + 1)} style={{ background: 'var(--surface)', border: 'none', color: 'var(--white)', width: '36px', height: '36px', fontSize: '18px', cursor: 'pointer' }}>+</button>
+            {/* Bundle selector */}
+            <div style={{ marginBottom: '20px' }}>
+              <p style={{ fontSize: '11px', color: 'var(--muted)', letterSpacing: '1px', textTransform: 'uppercase', marginBottom: '10px' }}>Select your bundle</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {BUNDLES.map((b, i) => (
+                  <button key={i} onClick={() => setSelectedBundle(i)} style={{
+                    background: selectedBundle === i ? 'rgba(79,195,247,0.07)' : 'var(--surface)',
+                    border: `1.5px solid ${selectedBundle === i ? 'var(--arc)' : 'var(--border)'}`,
+                    borderRadius: '8px', padding: '14px 16px',
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    cursor: 'pointer', transition: 'all 0.2s', textAlign: 'left',
+                    width: '100%',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <div style={{
+                        width: '18px', height: '18px', borderRadius: '50%', flexShrink: 0,
+                        border: `2px solid ${selectedBundle === i ? 'var(--arc)' : '#444'}`,
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      }}>
+                        {selectedBundle === i && <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--arc)' }} />}
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: '14px', color: 'var(--white)' }}>{b.label}</span>
+                          {b.tag && (
+                            <span style={{
+                              fontSize: '10px', fontWeight: 600, letterSpacing: '0.5px',
+                              background: b.tag === 'Best Value' ? 'rgba(79,195,247,0.15)' : 'rgba(255,200,0,0.12)',
+                              color: b.tag === 'Best Value' ? 'var(--arc)' : '#ffc800',
+                              padding: '2px 8px', borderRadius: '4px',
+                            }}>{b.tag}</span>
+                          )}
+                        </div>
+                        {b.perUnit && (
+                          <span style={{ fontSize: '11px', color: 'var(--muted)' }}>${b.perUnit} each</span>
+                        )}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: '16px', color: selectedBundle === i ? 'var(--arc)' : 'var(--white)' }}>${b.price}</div>
+                      {b.qty > 1 && (
+                        <div style={{ fontSize: '11px', color: 'var(--muted)', textDecoration: 'line-through' }}>${b.original.toFixed(2)}</div>
+                      )}
+                    </div>
+                  </button>
+                ))}
               </div>
+              {BUNDLES[selectedBundle].qty > 1 && (
+                <div style={{ marginTop: '8px', fontSize: '12px', color: 'var(--arc)', textAlign: 'right' }}>
+                  You save ${(BUNDLES[selectedBundle].original - BUNDLES[selectedBundle].price).toFixed(2)} AUD
+                </div>
+              )}
             </div>
 
             {/* CTA buttons - observed for sticky bar */}
@@ -348,7 +392,7 @@ export default function Home() {
               }}>
                 {addedToCart ? '✓ Added' : 'Add to cart'}
               </button>
-              <Link href={`/checkout?qty=${qty}`} style={{
+              <Link href={`/checkout?qty=${bundle.qty}`} style={{
                 flex: 2, minWidth: '150px',
                 background: 'var(--arc)', color: '#000',
                 padding: '14px 16px', borderRadius: '4px',
@@ -356,7 +400,7 @@ export default function Home() {
                 fontSize: '13px', letterSpacing: '1px', textTransform: 'uppercase',
                 textAlign: 'center', display: 'inline-block',
               }}>
-                Buy Now
+                Buy Now — ${bundle.price}
               </Link>
             </div>
 
@@ -477,7 +521,7 @@ export default function Home() {
             <span style={{ color: 'var(--arc)' }}>Start using arc.</span>
           </h2>
           <p style={{ color: 'var(--muted)', fontSize: '17px', marginBottom: '36px' }}>
-            ${PRICE} AUD · Free shipping · 14-day guarantee
+            $34.95 AUD · Free shipping · 14-day guarantee
           </p>
           <Link href="/checkout" style={{
             background: 'var(--arc)', color: '#000',
